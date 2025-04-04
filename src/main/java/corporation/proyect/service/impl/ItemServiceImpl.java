@@ -11,6 +11,7 @@ import corporation.proyect.response.ResponseDTO;
 import corporation.proyect.response.ResponseMessage;
 import corporation.proyect.service.IItemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ItemServiceImpl implements IItemService {
 
 
@@ -34,10 +36,17 @@ public class ItemServiceImpl implements IItemService {
 
     @Override
     public List<ItemResponseDTO> getAllItems() {
+        log.info("Iniciando la obtención de todos los items.");
         List<Item> items= itemRepository.findAll();
-        return items.stream()
+        log.debug("Se obtuvieron {} items desde la base de datos.", items.size());
+
+        List<ItemResponseDTO> respose = items
+                .stream()
                 .map(item -> itemMapper.toItemResponseDTO(item))
                 .toList(); //inmutable
+        log.debug("Se transformaron los items a DTOs correctamente.");
+        log.info("Finalizó la obtención y transformación de items.");
+        return respose;
     }
 
     @Override
