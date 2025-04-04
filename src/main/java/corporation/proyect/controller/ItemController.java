@@ -7,6 +7,7 @@ import corporation.proyect.response.ResponseDTO;
 import corporation.proyect.service.IItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,25 +48,25 @@ public class ItemController {
 
     @Operation(summary = "Crear un nuevo item")
     @PostMapping
-    public ResponseEntity<ItemResponseDTO> createItem(@RequestBody ItemRequestDTO itemRequestDTO) {
+    public ResponseEntity<ItemResponseDTO> createItem(@Valid @RequestBody ItemRequestDTO itemRequestDTO) {
         return ResponseEntity.status(201).body(itemService.createItem(itemRequestDTO));
     }
 
     @Operation(summary = "Crear un nuevo item con respuesta personalizada")
     @PostMapping("/response")
-    public ResponseEntity<ResponseDTO> createItemResponse(@RequestBody ItemRequestDTO itemRequestDTO) {
+    public ResponseEntity<ResponseDTO> createItemResponse(@Valid @RequestBody ItemRequestDTO itemRequestDTO) {
         return ResponseEntity.status(201).body(itemService.createItemResponse(itemRequestDTO));
     }
 
     @Operation(summary = "Actualizar un item existente")
     @PutMapping("/{id}")
-    public ResponseEntity<ItemResponseDTO> updateItem(@PathVariable Integer id, @RequestBody ItemRequestDTO itemRequestDTO) {
+    public ResponseEntity<ItemResponseDTO> updateItem(@Valid  @RequestBody ItemRequestDTO itemRequestDTO,@PathVariable Integer id) {
         return ResponseEntity.ok(itemService.updateItem(itemRequestDTO, id));
     }
 
     @Operation(summary = "Actualizar un item con respuesta personalizada")
     @PutMapping("/response/{id}")
-    public ResponseEntity<ResponseDTO> updateItemResponse(@PathVariable Integer id, @RequestBody ItemRequestDTO itemRequestDTO) {
+    public ResponseEntity<ResponseDTO> updateItemResponse(@Valid  @RequestBody ItemRequestDTO itemRequestDTO,@PathVariable Integer id) {
         return ResponseEntity.ok(itemService.updateItemResponse(itemRequestDTO, id));
     }
 
