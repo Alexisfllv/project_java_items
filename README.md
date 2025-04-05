@@ -616,3 +616,198 @@ public class OpenAPIConfig {
     }
 }
 ```
+
+
+## Vinculo
+
+### ENTITY
+``` java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "item_details")
+public class ItemDetail {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "detail_id")
+    private Integer id;
+
+    @Column(name = "detail_description", nullable = false, length = 255)
+    private String description;  // Descripción del item
+
+    @Column(name = "detail_quantity", nullable = false)
+    private Integer quantity;  // Cantidad extra o modificada
+
+    @ManyToOne
+    @JoinColumn(name = "item_id", nullable = false)  // FK hacia items
+    private Item item;  // Relación con la tabla Items
+}
+```
+
+
+### DTOs
+
+``` java
+public record ItemDetailRequestDTO(
+        String description,
+        Integer quantity,
+        Integer itemId
+) {
+}
+```
+``` java
+public record ItemDetailResponseDTO(
+        Integer id,
+        String description,
+        Integer quantity,
+        ItemResponseDTO responseDTO
+) {
+}
+```
+
+### MAPPER
+
+``` java
+@Mapper(componentModel = "spring")
+public interface IItemDetailMapper {
+
+    ItemDetailRequestDTO toItemDetailRequestDTO(ItemDetail itemDetail);
+
+    @Mapping(target = "item.id", source = "itemId")
+    ItemDetail toItemDetail(ItemDetailRequestDTO itemDetailRequestDTO);
+
+    // response
+    @Mapping(target = "responseDTO", source = "item")
+    ItemDetailResponseDTO toItemDetailResponseDTO(ItemDetail itemDetail);
+
+    ItemDetail toItemDetail(ItemDetail itemDetail);
+
+}
+```
+### REPOSITORY
+``` java
+@Repository
+public interface IItemDetailRepository extends JpaRepository<ItemDetail,Integer> {
+}
+```
+
+### SERVICE
+
+```java
+public interface IItemDetailService {
+    List<ItemDetailResponseDTO> listarItemDetail();
+    ItemDetailResponseDTO buscarxid(Integer id);
+    ItemDetailResponseDTO registrarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO);
+    ItemDetailResponseDTO actualizarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO, Integer id);
+    void eliminarItemDetail(Integer id);
+}
+```
+
+### SERVICEIMPL
+``` java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ItemDetailServiceImpl implements IItemDetailService {
+
+    //repos
+    private final IItemDetailRepository itemDetailRepository;
+    private final IItemRepository itemRepository;
+
+    //mapper
+    private final IItemDetailMapper iItemDetailMapper;
+
+
+    @Override
+    public List<ItemDetailResponseDTO> listarItemDetail() {
+        List<ItemDetail> itemDetails = itemDetailRepository.findAll();
+        return itemDetails.stream()
+                .map(itemDetail -> iItemDetailMapper.toItemDetailResponseDTO(itemDetail))
+                .toList();
+    }
+
+    @Override
+    public ItemDetailResponseDTO buscarxid(Integer id) {
+        ItemDetail itemDetail = itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+        return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+    }
+
+    @Override
+    public ItemDetailResponseDTO registrarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO) {
+
+        Item item = itemRepository.findById(itemDetailRequestDTO.itemId())
+                .orElseThrow(() -> new ExDataNotFoundException(" id de detail no encontado :" + itemDetailRequestDTO.itemId()));
+
+        log.debug("mapeo de los datos request al modelo");
+        ItemDetail itemDetail = iItemDetailMapper.toItemDetail(itemDetailRequestDTO);
+
+        itemDetail.setDescription(itemDetailRequestDTO.description());
+        itemDetail.setQuantity(itemDetailRequestDTO.quantity());
+        itemDetail.setItem(item);
+        log.debug("setear datos a itemDetailRequestDTO");
+        //
+        itemDetailRepository.save(itemDetail);
+        return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+
+    }
+
+    @Override
+    public ItemDetailResponseDTO actualizarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO, Integer id) {
+        ItemDetail itemDetail = itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+
+        itemDetail.setDescription(itemDetailRequestDTO.description());
+        itemDetail.setQuantity(itemDetailRequestDTO.quantity());
+
+        Item item =  itemRepository.findById(itemDetailRequestDTO.itemId())
+                .orElseThrow(() -> new ExDataNotFoundException("Item  not found :"+itemDetailRequestDTO.itemId()));
+        itemDetail.setItem(item);
+        // guardamos
+        itemDetailRepository.save(itemDetail);
+        return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+    }
+
+    @Override
+    public void eliminarItemDetail(Integer id) {
+        itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+        itemDetailRepository.deleteById(id);
+    }
+}
+```
+### CONTROLLER
+``` java
+@RestController
+@RequestMapping("/details")
+@RequiredArgsConstructor
+public class ItemDetailController {
+    //service
+    private final IItemDetailService itemDetailService;
+
+    //listas
+    @GetMapping
+    public ResponseEntity<List<ItemDetailResponseDTO>> findAll() {
+        return ResponseEntity.ok(itemDetailService.listarItemDetail());
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemDetailResponseDTO> findById(@PathVariable Integer id) {
+        return ResponseEntity.ok(itemDetailService.buscarxid(id));
+    }
+    @PostMapping
+    public ResponseEntity<ItemDetailResponseDTO> createItemDetail(@RequestBody ItemDetailRequestDTO itemDetailRequestDTO) {
+        return ResponseEntity.status(200).body(itemDetailService.registrarItemDetail(itemDetailRequestDTO));
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<ItemDetailResponseDTO> modificar (@PathVariable Integer id, @RequestBody ItemDetailRequestDTO itemDetailRequestDTO) {
+        return ResponseEntity.ok(itemDetailService.actualizarItemDetail(itemDetailRequestDTO,id));
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        itemDetailService.eliminarItemDetail(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```

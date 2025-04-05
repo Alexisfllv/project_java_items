@@ -47,10 +47,8 @@ public class ItemDetailServiceImpl implements IItemDetailService {
     @Override
     public ItemDetailResponseDTO registrarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO) {
 
-        //
         Item item = itemRepository.findById(itemDetailRequestDTO.itemId())
                 .orElseThrow(() -> new ExDataNotFoundException(" id de detail no encontado :" + itemDetailRequestDTO.itemId()));
-
 
         log.debug("mapeo de los datos request al modelo");
         ItemDetail itemDetail = iItemDetailMapper.toItemDetail(itemDetailRequestDTO);
@@ -73,26 +71,18 @@ public class ItemDetailServiceImpl implements IItemDetailService {
         itemDetail.setDescription(itemDetailRequestDTO.description());
         itemDetail.setQuantity(itemDetailRequestDTO.quantity());
 
-        //
         Item item =  itemRepository.findById(itemDetailRequestDTO.itemId())
                 .orElseThrow(() -> new ExDataNotFoundException("Item  not found :"+itemDetailRequestDTO.itemId()));
         itemDetail.setItem(item);
-
         // guardamos
         itemDetailRepository.save(itemDetail);
-
-        //
         return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
-
     }
 
     @Override
     public void eliminarItemDetail(Integer id) {
-
         itemDetailRepository.findById(id)
                 .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
         itemDetailRepository.deleteById(id);
-
-
     }
 }
