@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,21 @@ public class ItemDetailServiceImpl implements IItemDetailService {
     //mapper
     private final IItemDetailMapper iItemDetailMapper;
 
+
+    @Override
+    public List<ItemDetailResponseDTO> listarItemDetail() {
+        List<ItemDetail> itemDetails = itemDetailRepository.findAll();
+        return itemDetails.stream()
+                .map(itemDetail -> iItemDetailMapper.toItemDetailResponseDTO(itemDetail))
+                .toList();
+    }
+
+    @Override
+    public ItemDetailResponseDTO buscarxid(Integer id) {
+        ItemDetail itemDetail = itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+        return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+    }
 
     @Override
     public ItemDetailResponseDTO registrarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO) {
@@ -44,6 +62,37 @@ public class ItemDetailServiceImpl implements IItemDetailService {
         //
         itemDetailRepository.save(itemDetail);
         return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+
+    }
+
+    @Override
+    public ItemDetailResponseDTO actualizarItemDetail(ItemDetailRequestDTO itemDetailRequestDTO, Integer id) {
+        ItemDetail itemDetail = itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+
+        itemDetail.setDescription(itemDetailRequestDTO.description());
+        itemDetail.setQuantity(itemDetailRequestDTO.quantity());
+
+        //
+        Item item =  itemRepository.findById(itemDetailRequestDTO.itemId())
+                .orElseThrow(() -> new ExDataNotFoundException("Item  not found :"+itemDetailRequestDTO.itemId()));
+        itemDetail.setItem(item);
+
+        // guardamos
+        itemDetailRepository.save(itemDetail);
+
+        //
+        return iItemDetailMapper.toItemDetailResponseDTO(itemDetail);
+
+    }
+
+    @Override
+    public void eliminarItemDetail(Integer id) {
+
+        itemDetailRepository.findById(id)
+                .orElseThrow(() -> new ExDataNotFoundException("Item detail not found :"+id));
+        itemDetailRepository.deleteById(id);
+
 
     }
 }

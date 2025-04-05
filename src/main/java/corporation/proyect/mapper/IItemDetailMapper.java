@@ -14,13 +14,10 @@ public interface IItemDetailMapper {
     @Mapping(target = "item.id", source = "itemId")
     ItemDetail toItemDetail(ItemDetailRequestDTO itemDetailRequestDTO);
 
-
-
-
-
     // response
     @Mapping(target = "responseDTO", source = "item")
     ItemDetailResponseDTO toItemDetailResponseDTO(ItemDetail itemDetail);
+
     ItemDetail toItemDetail(ItemDetail itemDetail);
 
 }
