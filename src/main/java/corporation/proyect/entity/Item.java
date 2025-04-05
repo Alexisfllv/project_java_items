@@ -34,4 +34,5 @@ public class Item {
 
     @Column(name = "item_uuid", nullable = true, unique = true)
     private UUID uuid = UUID.randomUUID();   // UUID en BD
+
 }
