@@ -306,20 +306,16 @@ public record PageResponseDTO<T>(
         boolean isLast,
         boolean isFirst,
         int numberOfElements
-) {
+) {public PageResponseDTO(Page<T> page) {
+    this(page.getContent(),
+            page.getNumber(),
+            page.getSize(),
+            page.getTotalElements(),
+            page.getTotalPages(),
+            page.isLast(),
+            page.isFirst(),
+            page.getNumberOfElements());
 }
-```
-
-``` java
-public PageResponseDTO(Page<T> page) {
-        this(page.getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages(),
-        page.isLast(),
-        page.isFirst(),
-        page.getNumberOfElements());
 }
 ```
 
