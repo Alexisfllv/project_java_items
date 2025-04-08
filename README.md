@@ -307,16 +307,19 @@ public record PageResponseDTO<T>(
         boolean isFirst,
         int numberOfElements
 ) {
-    public PageResponseDTO(Page<T> page) {
+}
+```
+
+``` java
+public PageResponseDTO(Page<T> page) {
         this(page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isLast(),
-                page.isFirst(),
-                page.getNumberOfElements());
-    }
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isLast(),
+        page.isFirst(),
+        page.getNumberOfElements());
 }
 ```
 
